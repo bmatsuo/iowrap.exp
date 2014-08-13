@@ -9,7 +9,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/bmatsuo/sandbox/iowrap"
+	"github.com/bmatsuo/iowrap.exp"
 )
 
 // This example shows how to perform buffered writes of gzipped data to a file.
