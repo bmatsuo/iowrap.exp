@@ -2,16 +2,16 @@ package iowrap
 
 import "io"
 
-// Writer represents a stack of io.Writer implementations, each wrapping the
-// underlying one until the base which may be a file, network connection, byte
-// buffer, etc.
+// Writer is a stack of io.Writer implementations, each wrapping the underlying
+// one until the base which may be a file, network connection, byte buffer,
+// etc.
 type Writer struct {
 	w []io.Writer
 }
 
-// NewWriter allocates and returns a Writer using w as the base writer.  If w
-// is nil the returned Writer has an empty stack and any calls to Read return
-// an error without a preceding call to Wrap.
+// NewWriter allocates and returns a Writer with w on the stack.  If w is nil
+// the returned Writer has an empty stack and any calls to Read return an error
+// without a preceding call to Wrap.
 func NewWriter(w io.Writer) *Writer {
 	if w == nil {
 		return new(Writer)
@@ -75,9 +75,9 @@ func termWriter(w io.Writer) func() error {
 // WriteFlusher is an interface for io.Writer middleware that needs to buffer
 // data internally before flushing to an underlying writer.  In such situations
 // it is often the case that the buffer is only partially full at the point
-// where all writes have completed.
+// when all writes have completed.
 type WriteFlusher interface {
 	// Flush writes any remaining buffered data out to an underlying writer.
-	// When interal buffers Flush should be a noop.
+	// When interal buffers are empty Flush should be a noop.
 	Flush() error
 }

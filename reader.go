@@ -2,9 +2,9 @@ package iowrap
 
 import "io"
 
-// Reader represents a stack of io.Reader implementations, each wrapping the
-// underlying one until the base io.Reader which may be a file, network
-// connection, byte buffer, etc.
+// Reader is astack of io.Reader implementations, each wrapping the underlying
+// one until the base io.Reader which may be a file, network connection, byte
+// buffer, etc.
 type Reader struct {
 	r []io.Reader
 }
