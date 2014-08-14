@@ -13,15 +13,17 @@ import (
 
 // This example shows how to write gzipped data to a file and read it back out.
 func Example() {
-	// compose a stack of writers ultimately writing to f.
+	// compose a stack of writers ultimately writing to a temporary file.
 	w := iowrap.NewWriter(nil)
+
 	err := w.Wrap(ioutil.TempFile("", "iowrap-example-"))
 	if err != nil {
 		log.Panic(err)
 	}
-	tmpfile := w.W(0).(*os.File).Name()
+	tmpfile := w.Top().(*os.File).Name()
 	defer os.Remove(tmpfile)
-	_ = w.Wrap(gzip.NewWriter(w.W(0)), nil)
+
+	_ = w.Wrap(gzip.NewWriter(w.Top()), nil)
 
 	// after writing some data, close the file (flushing the gzip stream in the
 	// process).
@@ -40,7 +42,7 @@ func Example() {
 	if err != nil {
 		log.Panic(err)
 	}
-	err = r.Wrap(gzip.NewReader(r.R(0)))
+	err = r.Wrap(gzip.NewReader(r.Top()))
 	if err != nil {
 		log.Panic(err)
 	}

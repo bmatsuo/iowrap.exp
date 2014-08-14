@@ -19,6 +19,11 @@ func NewReader(r io.Reader) *Reader {
 	return &Reader{[]io.Reader{r}}
 }
 
+// Top returns the reader on top of the stack. It is equivalent to r.R(0).
+func (r *Reader) Top() io.Reader {
+	return r.R(0)
+}
+
 // NumR returns the number of readers in the stack.
 func (r *Reader) NumR() int {
 	return len(r.r)

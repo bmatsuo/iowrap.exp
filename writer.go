@@ -19,6 +19,11 @@ func NewWriter(w io.Writer) *Writer {
 	return &Writer{[]io.Writer{w}}
 }
 
+// Top returns the writer on top of the stack. It is equivalent to w.W(0).
+func (w *Writer) Top() io.Writer {
+	return w.W(0)
+}
+
 // NumW returns the number of writers in the stack.
 func (w *Writer) NumW() int {
 	return len(w.w)
