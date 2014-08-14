@@ -16,9 +16,7 @@ func NewReader(r io.Reader) *Reader {
 	if r == nil {
 		return new(Reader)
 	}
-	return &Reader{
-		r: []io.Reader{r},
-	}
+	return &Reader{[]io.Reader{r}}
 }
 
 // NumR returns the number of readers in the stack.

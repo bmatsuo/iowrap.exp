@@ -6,8 +6,7 @@ import "io"
 // underlying one until the base which may be a file, network connection, byte
 // buffer, etc.
 type Writer struct {
-	err error
-	w   []io.Writer
+	w []io.Writer
 }
 
 // NewWriter allocates and returns a Writer using w as the base writer.  If w
@@ -17,9 +16,7 @@ func NewWriter(w io.Writer) *Writer {
 	if w == nil {
 		return new(Writer)
 	}
-	return &Writer{
-		w: []io.Writer{w},
-	}
+	return &Writer{[]io.Writer{w}}
 }
 
 // NumW returns the number of writers in the stack.
