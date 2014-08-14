@@ -23,8 +23,8 @@ func Example() {
 	defer os.Remove(tmpfile)
 	_ = w.Wrap(gzip.NewWriter(w.W(0)), nil)
 
-	// after writing some data the file and close the file, flushing any
-	// buffered gzip data in the process.
+	// after writing some data, close the file (flushing the gzip stream in the
+	// process).
 	_, err = fmt.Fprintln(w, "hello iowrap")
 	if errclose := w.Close(); err == nil {
 		err = errclose
