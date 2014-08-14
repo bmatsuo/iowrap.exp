@@ -20,10 +20,10 @@ func Example() {
 	}
 	defer os.Remove(f.Name())
 
-	// compose a chain of writers using WrapFunc.
+	// compose a stack of writers using WrapFunc.
 	w := iowrap.NewWriter(f)
-	w.WrapFunc(func(w io.Writer) io.Writer { return bufio.NewWriter(w) })
-	w.WrapFunc(func(w io.Writer) io.Writer { return gzip.NewWriter(w) })
+	_ = w.Wrap(bufio.NewWriter(w.W(0)), nil)
+	_ = w.Wrap(gzip.NewWriter(w.W(0)), nil)
 
 	// data will first be gzipped and then buffered before being written to the
 	// file.
@@ -39,5 +39,22 @@ func Example() {
 		log.Panic(err)
 	}
 
-	// Output:
+	// open the file for reading
+	r := iowrap.NewReader(nil)
+	err = r.Wrap(os.Open(f.Name()))
+	if err != nil {
+		log.Panic(err)
+	}
+	err = r.Wrap(gzip.NewReader(r.R(0)))
+	if err != nil {
+		log.Panic(err)
+	}
+	defer r.Close()
+
+	_, err = io.Copy(os.Stdout, r)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	// Output: hello iowrap
 }
