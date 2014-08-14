@@ -1,7 +1,6 @@
 package iowrap_test
 
 import (
-	"bufio"
 	"compress/gzip"
 	"fmt"
 	"io"
@@ -12,11 +11,9 @@ import (
 	"github.com/bmatsuo/iowrap.exp"
 )
 
-// This example shows how to perform buffered writes of gzipped data to a file.
+// This example shows how to write gzipped data to a file and read it back out.
 func Example() {
-	// compose a stack of writers ultimately writing to f. Wrap returns an
-	// error but it can safely be ignored if explicitly given a nil error
-	// value.
+	// compose a stack of writers ultimately writing to f.
 	w := iowrap.NewWriter(nil)
 	err := w.Wrap(ioutil.TempFile("", "iowrap-example-"))
 	if err != nil {
@@ -24,11 +21,10 @@ func Example() {
 	}
 	tmpfile := w.W(0).(*os.File).Name()
 	defer os.Remove(tmpfile)
-	_ = w.Wrap(bufio.NewWriter(w.W(0)), nil)
 	_ = w.Wrap(gzip.NewWriter(w.W(0)), nil)
 
-	// after writing some data the file Close closes/flushes the gzip writer,
-	// writes bufferred data to the file, and finally closes the file itself.
+	// after writing some data the file and close the file, flushing any
+	// buffered gzip data in the process.
 	_, err = fmt.Fprintln(w, "hello iowrap")
 	if errclose := w.Close(); err == nil {
 		err = errclose
@@ -37,9 +33,7 @@ func Example() {
 		log.Panic(err)
 	}
 
-	// open the file again, but for reading. creating the iowrap.Reader with a
-	// nil io.Writer can help clean up the code by providing a more logical
-	// ordering of declaration.
+	// open the file again, but for reading.
 	r := iowrap.NewReader(nil)
 	err = r.Wrap(os.Open(tmpfile))
 	if err != nil {
