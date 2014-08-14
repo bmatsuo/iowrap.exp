@@ -26,7 +26,8 @@ func Example() {
 	// after writing some data, close the file (flushing the gzip stream in the
 	// process).
 	_, err = fmt.Fprintln(w, "hello iowrap")
-	if errclose := w.Close(); err == nil {
+	errclose := w.Close()
+	if err == nil {
 		err = errclose
 	}
 	if err != nil {
