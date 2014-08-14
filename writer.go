@@ -1,27 +1,6 @@
 package iowrap
 
-import (
-	"bufio"
-	"fmt"
-	"io"
-	"log"
-)
-
-// Buffer wraps v with bufio.Reader if v is a *Reader or bufio.Writer if v is a
-// *Writer.  Buffer issues log.Panic if v's type is neither *Writer nor
-// *Reader.
-func Buffer(v interface{}) {
-	switch x := v.(type) {
-	case *Writer:
-		// this does not return an error. Wrap just forwards input errors.
-		x.Wrap(bufio.NewWriter(x.W(0)), nil)
-	case *Reader:
-		// this does not return an error. Wrap just forwards input errors.
-		x.Wrap(bufio.NewReader(x.R(0)), nil)
-	default:
-		log.Panicf("buffer: invalid type %T not *iowrap.Writer or *iowrap.Reader", v)
-	}
-}
+import "io"
 
 // Writer represents a stack of io.Writer implementations, each wrapping the
 // underlying one until the base which may be a file, network connection, byte
@@ -31,17 +10,25 @@ type Writer struct {
 	w   []io.Writer
 }
 
-// NewWriter allocates and returns a Writer using w as the base writer.
+// NewWriter allocates and returns a Writer using w as the base writer.  If w
+// is nil the returned Writer has an empty stack and any calls to Read return
+// an error without a preceding call to Wrap.
 func NewWriter(w io.Writer) *Writer {
+	if w == nil {
+		return new(Writer)
+	}
 	return &Writer{
 		w: []io.Writer{w},
 	}
 }
 
+// NumW returns the number of writers in the stack.
 func (w *Writer) NumW() int {
 	return len(w.w)
 }
 
+// W returns the writer at index i in the stack. The top of the stack is index
+// zero.
 func (w *Writer) W(i int) io.Writer {
 	return w.w[len(w.w)-1-i]
 }
@@ -77,30 +64,6 @@ func (w *Writer) Close() error {
 	return err
 }
 
-// Reset will the call the Reset method on all writters in the stack from the
-// bottom upward, making wbase the new base writer.  An error is returned if a
-// writer is encountered that does not implement WriteResetter.
-func (w *Writer) Reset(wbase io.Writer) error {
-	var _w io.Writer = wbase
-	// range over w.w goes from the bottom of the stack upward.
-	for i := range w.w {
-		if wr, ok := w.w[i].(WriteResetter); ok {
-			err := wr.Reset(_w)
-			if err != nil {
-				return err
-			}
-			_w = w.w[i]
-			continue
-		}
-		if i == 0 {
-			w.w[i] = wbase
-			continue
-		}
-		return fmt.Errorf("not a WriteResetter")
-	}
-	return nil
-}
-
 func termWriter(w io.Writer) func() error {
 	switch w := w.(type) {
 	case io.Closer:
@@ -120,17 +83,4 @@ type WriteFlusher interface {
 	// Flush writes any remaining buffered data out to an underlying writer.
 	// When interal buffers Flush should be a noop.
 	Flush() error
-}
-
-// WriteResetter allows reuse of an io.Writer middleware by changing the
-// underlying writer and clearing any internal state.
-type WriteResetter interface {
-	io.Writer
-	// Reset changes the receiver's underlying io.Writer to w and resets all
-	// internal state. After Reset returns an err the receiver's Write method
-	// must not be called (unless a subsequent, successful call to Reset is
-	// made).  After Reset returns nil the receiver's Write method may be
-	// called. The writer's state must be equivalent to that of a newly
-	// constructed object of the same type that proxies writes to w.
-	Reset(w io.Writer) error
 }
