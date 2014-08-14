@@ -45,8 +45,8 @@ func (w *Writer) Wrap(wrapper io.Writer, err error) error {
 }
 
 // Write writes b to the writer on the top of the stack.
-func (w *Writer) Write(b []byte) (int, error) {
-	return w.W(0).Write(b)
+func (w *Writer) Write(bs []byte) (int, error) {
+	return w.W(0).Write(bs)
 }
 
 // Close terminates all writers on the stack from top to bottom.  Writers in
