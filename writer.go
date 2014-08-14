@@ -44,8 +44,10 @@ func (w *Writer) Write(b []byte) (int, error) {
 	return w.W(0).Write(b)
 }
 
-// Close terminates all writers on the stack.  Writers are terminated from top
-// of the stack downward.
+// Close terminates all writers on the stack from top to bottom.  Writers in
+// the stack implementing io.WriteCloser will have their Close method calls.
+// Writers implementing WriteFlusher will have Flush called.  Other writers
+// will be ignored.
 func (w *Writer) Close() error {
 	var err error
 	for i, n := 0, w.NumW(); i < n; i++ {
